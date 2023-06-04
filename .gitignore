@@ -1,0 +1,10 @@
+# Arquivos de video:
+*.mp4
+*.avi
+*.mkv
+
+# Arquivos de comprimidos:
+*.zip
+*.rar
+*.7z
+*.tar.gz
