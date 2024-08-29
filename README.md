@@ -1,37 +1,19 @@
-# Pocessamento de Imagens 2023/1
+# Pocessamento de Imagens 2024/2
 
 Repositorio de códigos da disciplina Processamento de Imagens.
 
+Professora: Glenda Botelho
+
+Academicos: [Antonio André](https://github.com/andrebarceloschagas/) e [Sophia Prado](https://github.com/sophiaprado1/)
+
 ## Interpolação por Vizinho Mais Próximo
 
-[Redução](https://github.com/andrebarceloschagas/PI_2023_1/tree/develop/1/reducao_vizinho)
+[Redução]()
 
-[Ampliação](https://github.com/andrebarceloschagas/PI_2023_1/tree/develop/1/ampliacao_vizinho)
+[Ampliação]()
 
 ## Intepolação Bilinear
 
 [Redução]()
 
 [Ampliação]()
-
-## Rotulação
-
-[Rotulação](https://github.com/andrebarceloschagas/PI_2023_1/tree/develop/2/rotulacao)
-
-## Operações Aritméticas
-
-[Adição](https://github.com/andrebarceloschagas/PI_2023_1/tree/develop/3/operacao_aritmetica/adicao)
-
-[Subtração](https://github.com/andrebarceloschagas/PI_2023_1/tree/develop/3/operacao_aritmetica/subtracao)
-
-## Operação Geométrica
-
-[Espelhamento](https://github.com/andrebarceloschagas/PI_2023_1/tree/develop/3/operacao_geometrica)
-
-## Transformação de Intensidade
-
-[Negativa](https://github.com/andrebarceloschagas/PI_2023_1/tree/develop/4/intensidade)
-
-## Equalização de Histograma
-
-[Equalização](https://github.com/andrebarceloschagas/PI_2023_1/tree/develop/4/equalizacao)
