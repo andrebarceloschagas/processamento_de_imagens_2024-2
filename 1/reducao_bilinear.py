@@ -46,9 +46,7 @@ def bilinear_interpolation(pixels, new_size):
     height, width = pixels.shape[:2]  # Obtém a altura e a largura da imagem original
     if len(pixels.shape) == 2:
         channels = 1  # Para imagens em escala de cinza
-    else:
-        channels = pixels.shape[2]  # Para imagens coloridas (RGB)
-    
+        
     new_height, new_width = new_size  # Define a nova altura e largura da imagem
     # Cria um array vazio para os novos pixels, com float32 para evitar overflow
     new_pixels = np.zeros((new_height, new_width, channels), dtype=np.float32) if channels > 1 else np.zeros((new_height, new_width), dtype=np.float32)
