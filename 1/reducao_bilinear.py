@@ -55,9 +55,9 @@ def bilinear_interpolation(pixels, new_size):
 
     for i in range(new_height):
         for j in range(new_width):
-            # Encontrar as coordenadas dos pixels vizinhos
-            h_idx = int(i * height / new_height)
-            w_idx = int(j * width / new_width)
+            # Encontrar as coordenadas dos pixels vizinhos usando divisão inteira
+            h_idx = i * height // new_height
+            w_idx = j * width // new_width
             h_idx_2 = min(h_idx + 1, height - 1)
             w_idx_2 = min(w_idx + 1, width - 1)
 
