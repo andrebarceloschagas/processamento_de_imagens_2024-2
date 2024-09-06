@@ -8,12 +8,12 @@ Academicos: [Antonio André](https://github.com/andrebarceloschagas/) e [Sophia 
 
 ## Interpolação por Vizinho Mais Próximo
 
-[Redução]()
+[Redução](/1/reducao_vizinho.py)
 
-[Ampliação]()
+[Ampliação](/1/ampliacao_vizinho.py)
 
 ## Intepolação Bilinear
 
-[Redução]()
+[Redução](/1/reducao_bilinear.py)
 
-[Ampliação]()
+[Ampliação](/1/ampliação_bilinear.py)
