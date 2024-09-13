@@ -17,3 +17,17 @@ Academicos: [Antonio André](https://github.com/andrebarceloschagas/) e [Sophia 
 [Redução](/1/reducao_bilinear.py)
 
 [Ampliação](/1/ampliação_bilinear.py)
+
+## Rotulação
+
+[Rotulação](/2/rotulacao.py)
+
+## Operações Aritméticas
+
+[Adição](/2/adicao.py)
+
+[Subtração](/2/subtracao.py)
+
+## Operação Geométrica
+
+[Espelhamento Horizontal](/2/espelhamento.py)
