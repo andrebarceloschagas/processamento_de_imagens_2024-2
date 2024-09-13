@@ -2,39 +2,22 @@
 from PIL import Image
 import numpy as np
 
-def load_image(file_path):
+def load_image(file_path, as_gray=False):
     """
     Função para carregar a imagem a partir do caminho do arquivo.
+    Se as_gray for True, converte a imagem para escala de cinza.
     """
-    img = Image.open(file_path)  # Abre a imagem usando a biblioteca PIL
-    return img  # Retorna a imagem carregada
+    img = Image.open(file_path)  # Abre a imagem
+    if as_gray:
+        img = img.convert('L')  # Converte para escala de cinza, se necessário
+    return np.array(img)  # Retorna os pixels da imagem como array numpy
 
-def save_image(image, file_path):
+def save_image(pixels, file_path):
     """
-    Função para salvar a imagem em um arquivo externo.
+    Função para salvar a imagem (array de pixels) em um arquivo externo.
     """
+    image = Image.fromarray(pixels.astype('uint8'))  # Converte o array para imagem
     image.save(file_path)  # Salva a imagem no caminho especificado
-
-def get_pixels(image):
-    """
-    Função para obter os pixels da imagem.
-    """
-    pixels = np.array(image)  # Converte a imagem para um array numpy
-    return pixels  # Retorna o array de pixels
-
-def set_pixels(pixels):
-    """
-    Função para definir os pixels em uma imagem.
-    """
-    image = Image.fromarray(pixels.astype('uint8'))  # Converte o array de volta para uint8 e cria uma imagem
-    return image  # Retorna a imagem criada a partir dos pixels
-
-def rgb_to_gray(image):
-    """
-    Função para transformar a imagem em escala de cinza.
-    """
-    gray_image = image.convert('L')  # Converte a imagem para escala de cinza
-    return gray_image  # Retorna a imagem em escala de cinza
 
 def espelhamento_horizontal(image):
     """
@@ -58,23 +41,14 @@ if __name__ == '__main__':
     # Caminho para a imagem de entrada:
     input_image_path = "/home/andre/processamento_de_imagens_2024-2/2/olho.jpg"
     
-    # Carrega a imagem:
-    image = load_image(input_image_path)
-
-    # Converte a imagem para escala de cinza (se necessário):
-    gray_image = rgb_to_gray(image)
-
-    # Obtém os pixels da imagem:
-    pixels = get_pixels(gray_image)
+    # Carrega a imagem em escala de cinza:
+    pixels = load_image(input_image_path, as_gray=True)
 
     # Chama a função de espelhamento:
     imagem_espelhada = espelhamento_horizontal(pixels)
-
-    # Converte o resultado para uma imagem:
-    imagem_resultado = set_pixels(imagem_espelhada)
 
     # Caminho para salvar a imagem espelhada:
     output_image_path = "/home/andre/processamento_de_imagens_2024-2/2/resultado_olho.jpg"
 
     # Salva a imagem espelhada:
-    save_image(imagem_resultado, output_image_path)
+    save_image(imagem_espelhada, output_image_path)

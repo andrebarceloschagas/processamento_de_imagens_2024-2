@@ -2,39 +2,22 @@
 import numpy as np
 from PIL import Image
 
-def load_image(file_path):
+def load_image(file_path, as_gray=False):
     """
     Função para carregar a imagem a partir do caminho do arquivo.
+    Se as_gray for True, converte a imagem para escala de cinza.
     """
-    img = Image.open(file_path)  # Abre a imagem usando a biblioteca PIL
-    return img  # Retorna a imagem carregada
+    img = Image.open(file_path)  # Abre a imagem
+    if as_gray:
+        img = img.convert('L')  # Converte para escala de cinza, se necessário
+    return np.array(img)  # Retorna os pixels da imagem como array numpy
 
-def save_image(image, file_path):
+def save_image(pixels, file_path):
     """
-    Função para salvar a imagem em um arquivo externo.
+    Função para salvar a imagem (array de pixels) em um arquivo externo.
     """
+    image = Image.fromarray(pixels.astype('uint8'))  # Converte o array para imagem
     image.save(file_path)  # Salva a imagem no caminho especificado
-
-def get_pixels(image):
-    """
-    Função para obter os pixels da imagem.
-    """
-    pixels = np.array(image)  # Converte a imagem para um array numpy
-    return pixels  # Retorna o array de pixels
-
-def set_pixels(pixels):
-    """
-    Função para definir os pixels em uma imagem.
-    """
-    image = Image.fromarray(pixels.astype('uint8'))  # Converte o array de volta para uint8 e cria uma imagem
-    return image  # Retorna a imagem criada a partir dos pixels
-
-def rgb_to_gray(image):
-    """
-    Função para transformar a imagem em escala de cinza.
-    """
-    gray_image = image.convert('L')  # Converte a imagem para escala de cinza
-    return gray_image  # Retorna a imagem em escala de cinza
 
 def subtract(matrix1, matrix2):
     """
@@ -64,26 +47,15 @@ if __name__ == '__main__':
     image_path1 = "/home/andre/processamento_de_imagens_2024-2/2/8.png"
     image_path2 = "/home/andre/processamento_de_imagens_2024-2/2/12.png"
     
-    # Carrega as imagens:
-    image1 = load_image(image_path1)
-    image2 = load_image(image_path2)
-
-    # Converte as imagens para escala de cinza (se necessário):
-    gray_image1 = rgb_to_gray(image1)
-    gray_image2 = rgb_to_gray(image2)
-
-    # Obtém os pixels das imagens:
-    pixels1 = get_pixels(gray_image1)
-    pixels2 = get_pixels(gray_image2)
+    # Carrega as imagens em escala de cinza:
+    pixels1 = load_image(image_path1, as_gray=True)
+    pixels2 = load_image(image_path2, as_gray=True)
 
     # Chama a função de subtração:
     matrix_subtract = subtract(pixels1, pixels2)
-
-    # Cria uma nova imagem com o resultado da subtração:
-    subtracted_image = set_pixels(matrix_subtract)
 
     # Caminho para salvar a imagem resultante:
     output_image_path = "/home/andre/processamento_de_imagens_2024-2/2/subtracao.png"
 
     # Salva a nova imagem resultado:
-    save_image(subtracted_image, output_image_path)
+    save_image(matrix_subtract, output_image_path)
