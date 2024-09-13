@@ -1,75 +1,70 @@
 import numpy as np
 from PIL import Image
 
-def find_root(label, equivalences):
-    # Encontra a raiz de um rótulo (resolve equivalências)
-    while equivalences[label] != label:
-        label = equivalences[label]
-    return label
-
-def label_objects(image_path, threshold=128):
-    # Carrega a imagem e converte para escala de cinza
+def to_binary_image(image_path, threshold=128):
+    # Converte uma imagem colorida em uma imagem binária usando um limiar.
     image = Image.open(image_path).convert('L')
-    # Converte a imagem para binária usando um limiar (threshold)
     binary_image = np.array(image.point(lambda x: 0 if x < threshold else 255))
+    return binary_image
 
-    # Inicializa a matriz de rótulos e o dicionário de equivalências
-    labels = np.zeros_like(binary_image, dtype=int)
-    equivalences = {}
+def save_binary_image(binary_image, output_path):
+    # Salva uma imagem binária como um arquivo de imagem.
+    image = Image.fromarray(binary_image.astype(np.uint8))
+    image.save(output_path)
+
+def save_binary_matrix(binary_image, output_path):
+    # Salva uma imagem binária como uma matriz binária em um arquivo de texto
+    binary_image = np.where(binary_image == 0, '0', '1')
+    np.savetxt(output_path, binary_image, fmt='%s')
+
+def label_objects(binary_image):
+    # Rotula objetos em uma imagem binária
+    labels = np.zeros_like(binary_image)
     label = 1
 
-    # Passo 1: Primeira passagem - rotulação e registro de equivalências
+    # Para cada pixel na imagem binária:
     for i in range(binary_image.shape[0]):
         for j in range(binary_image.shape[1]):
-            if binary_image[i, j] == 255:  # Se o pixel faz parte de um objeto (pixel branco)
-                # Obtenha os vizinhos r (esquerda) e s (acima)
-                r = labels[i, j-1] if j > 0 else 0  # Vizinho à esquerda
-                s = labels[i-1, j] if i > 0 else 0  # Vizinho acima
+            # Se o pixel é parte de um objeto:
+            if binary_image[i, j] == 255:
+                # Encontra todos os pixels adjacentes ao pixel atual que já foram rotulados:
+                adjacent_labels = []
+                if i > 0 and labels[i-1, j] > 0:
+                    adjacent_labels.append(labels[i-1, j])
+                if j > 0 and labels[i, j-1] > 0:
+                    adjacent_labels.append(labels[i, j-1])
 
-                if r == 0 and s == 0:
-                    # Caso 2.1: r e s são 0, atribui um novo rótulo a p
+                # Se nenhum pixel adjacente foi rotulado, crie um novo rótulo:
+                if not adjacent_labels:
                     labels[i, j] = label
-                    equivalences[label] = label  # Cada novo rótulo é seu próprio representante
                     label += 1
-                elif r != 0 and s == 0:
-                    # Caso 2.2: Apenas r é rotulado
-                    labels[i, j] = r
-                elif r == 0 and s != 0:
-                    # Caso 2.2: Apenas s é rotulado
-                    labels[i, j] = s
-                elif r != 0 and s != 0:
-                    if r == s:
-                        # Caso 2.3: r e s têm o mesmo rótulo
-                        labels[i, j] = r
-                    else:
-                        # Caso 2.4: r e s têm rótulos diferentes, marcam-se como equivalentes
-                        min_label = min(r, s)
-                        max_label = max(r, s)
-                        labels[i, j] = min_label
-                        equivalences[max_label] = min_label
+                # Caso contrário, atribua o menor rótulo adjacente ao pixel atual:
+                else:
+                    adjacent_labels.sort()
+                    labels[i, j] = adjacent_labels[0]
 
-    # Passo 2: Segunda passagem - Trocar rótulos pelos seus equivalentes
-    for i in range(binary_image.shape[0]):
-        for j in range(binary_image.shape[1]):
-            if labels[i, j] != 0:
-                # Substitui cada rótulo pelo seu equivalente final (raiz)
-                labels[i, j] = find_root(labels[i, j], equivalences)
+                    # Se houver mais de um rótulo adjacente, adiciona as equivalências de rótulo:
+                    if len(adjacent_labels) > 1:
+                        for k in range(1, len(adjacent_labels)):
+                            equivalence = min(adjacent_labels[0], adjacent_labels[k])
+                            labels = np.where(labels == adjacent_labels[k], equivalence, labels)
 
     return labels
 
-def save_labeled_image(labeled_image, output_path):
-    # Converte a matriz de rótulos para uma imagem e salva
-    labeled_image_normalized = (labeled_image / labeled_image.max()) * 255  # Normaliza os valores de rótulos para a faixa [0, 255]
-    image = Image.fromarray(labeled_image_normalized.astype(np.uint8))
-    image.save(output_path)
-
 if __name__ == '__main__':
-    # Caminho da imagem de entrada
-    input_image_path = "/home/andre/processamento_de_imagens_2024-2/2/brat.jpeg"
-    
-    # Rotula os objetos na imagem
-    labeled_image = label_objects(input_image_path)
+    # Carrega a imagem.
+    input_path = '/home/andre/processamento_de_imagens_2024-2/2/18_redux.png'
 
-    # Salva a imagem rotulada
-    output_image_path = "/home/andre/processamento_de_imagens_2024-2/2/brat_label_image.jpeg"
-    save_labeled_image(labeled_image, output_image_path)
+    # Converte a imagem colorida em uma imagem binária.
+    binary_image = to_binary_image(input_path)
+
+    # Rotula os objetos na imagem binária.
+    labeled_image = label_objects(binary_image)
+
+    # Salva a imagem binária como um arquivo de imagem.
+    output_image_path = '/home/andre/processamento_de_imagens_2024-2/2/label_image.png'
+    save_binary_image(binary_image, output_image_path)
+
+    # Salva a matriz binária em um arquivo de texto.
+    output_matrix_path = '/home/andre/processamento_de_imagens_2024-2/2/binary_matrix.txt'
+    save_binary_matrix(binary_image, output_matrix_path)
