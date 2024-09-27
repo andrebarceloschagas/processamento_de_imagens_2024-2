@@ -56,7 +56,7 @@ def negative_transform(image):
 
 if __name__ == '__main__':
     # Caminho para a imagem de entrada
-    input_image_path = "/home/andre/desenvolvimento/processamento_de_imagens_2024-2/3/canoas.jpg"
+    input_image_path = "/home/andre/desenvolvimento/processamento_de_imagens_2024-2/3/museu.jpg"
 
     # Carrega a imagem original
     original_image = load_image(input_image_path)
