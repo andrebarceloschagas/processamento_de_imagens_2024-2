@@ -1,4 +1,4 @@
-#!/home/andre/processamento_de_imagens_2024-2/venv/bin/python3
+#!/home/andre/desenvolvimento/processamento_de_imagens_2024-2/venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys

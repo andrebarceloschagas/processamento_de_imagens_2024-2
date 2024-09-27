@@ -31,3 +31,9 @@ Academicos: [Antonio André](https://github.com/andrebarceloschagas/) e [Sophia 
 ## Operação Geométrica
 
 [Espelhamento Horizontal](/2/espelhamento.py)
+
+## Transformação de Intensidade
+
+[Transformação Negativa](/3/negativa.py)
+
+
