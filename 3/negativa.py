@@ -42,21 +42,13 @@ def plot_images(original, gray, negative):
     plt.show()
 
 def negative_transform(image):
-    """
-    Aplica a transformação negativa na imagem:
-    A transformação negativa inverte os valores de pixel da imagem, 
-    criando um efeito de negativo fotográfico. Para uma imagem em 
-    tons de cinza, cada valor de pixel é subtraído do valor máximo 
-    de cinza (255), resultando em uma nova imagem onde as áreas 
-    claras se tornam escuras e vice-versa.
-    """
     image_array = np.array(image)  # Converte a imagem para array
     max_gray_value = 255
     return Image.fromarray(max_gray_value - image_array)  # Aplica o negativo
 
 if __name__ == '__main__':
     # Caminho para a imagem de entrada
-    input_image_path = "/home/andre/desenvolvimento/processamento_de_imagens_2024-2/3/museu.jpg"
+    input_image_path = "/home/andre/desenvolvimento/processamento_de_imagens_2024-2/3/alvorada.jpg"
 
     # Carrega a imagem original
     original_image = load_image(input_image_path)
