@@ -36,4 +36,6 @@ Academicos: [Antonio André](https://github.com/andrebarceloschagas/) e [Sophia 
 
 [Transformação Negativa](/3/negativa.py)
 
+## Processamento de Histograma
 
+[Equalização de Histograma](/4/equalizacao.py)
