@@ -9,33 +9,6 @@ def load_image(image_path):
     img = Image.open(image_path).convert('L')  # Converte a imagem para tons de cinza
     return np.array(img)  # Retorna a imagem como array
 
-# def plot_images(original, gray, filtered):
-#     """
-#     Função para plotar a imagem original, em escala de cinza e filtrada.
-#     """
-#     plt.figure(figsize=(12, 4))
-
-#     # Imagem original colorida
-#     plt.subplot(1, 3, 1)
-#     plt.imshow(original, cmap='gray')
-#     plt.title('Imagem Original')
-#     plt.axis('off')
-
-#     # Imagem em escala de cinza
-#     plt.subplot(1, 3, 2)
-#     plt.imshow(gray, cmap='gray')
-#     plt.title('Imagem em Escala de Cinza')
-#     plt.axis('off')
-
-#     # Imagem filtrada (após o filtro da média)
-#     plt.subplot(1, 3, 3)
-#     plt.imshow(filtered, cmap='gray')
-#     plt.title('Imagem Filtrada (Filtro da Média)')
-#     plt.axis('off')
-
-#     # Mostra as imagens
-#     plt.show()
-
 def filtro_media(image_array, size):
     """
     Função para aplicar o filtro da média em uma imagem dada (como array).
@@ -88,6 +61,3 @@ if __name__ == '__main__':
 
     # Converte o array filtrado de volta para imagem e salva
     Image.fromarray(filtered_image.astype(np.uint8)).save("/home/andre/dev/processamento_de_imagens_2024-2/5/media_marisa_filtered.jpg")
-
-    # Plota as imagens: original colorida, em escala de cinza e filtrada
-    # plot_images(Image.open(image_path), image_array, filtered_image)

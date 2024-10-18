@@ -28,35 +28,6 @@ def laplacian_filter(image_array, kernel):
 
     return filtered_array.astype(np.uint8)
 
-# def plot_images_laplacian(original, gray, laplacian_images, titles):
-#     """
-#     Função para plotar a imagem original, em escala de cinza e com os diferentes filtros Laplacianos aplicados.
-#     """
-#     num_filters = len(laplacian_images)
-#     plt.figure(figsize=(15, 5))
-
-#     # Imagem original colorida
-#     plt.subplot(1, num_filters + 2, 1)
-#     plt.imshow(original)
-#     plt.title('Imagem Original')
-#     plt.axis('off')
-
-#     # Imagem em escala de cinza
-#     plt.subplot(1, num_filters + 2, 2)
-#     plt.imshow(gray, cmap='gray')
-#     plt.title('Imagem em Escala de Cinza')
-#     plt.axis('off')
-
-#     # Imagens filtradas com diferentes máscaras Laplacianas
-#     for i in range(num_filters):
-#         plt.subplot(1, num_filters + 2, i + 3)
-#         plt.imshow(laplacian_images[i], cmap='gray')
-#         plt.title(titles[i])
-#         plt.axis('off')
-
-#     # Mostra todas as imagens
-#     plt.show()
-
 if __name__ == '__main__':
     # Define as máscaras Laplacianas:
     mascara_1 = np.array([[0, 1, 0], # Laplaciano 1
@@ -97,8 +68,3 @@ if __name__ == '__main__':
     Image.fromarray(filtered_image2).save("/home/andre/dev/processamento_de_imagens_2024-2/5/laplaciano_2.jpeg")
     Image.fromarray(filtered_image3).save("/home/andre/dev/processamento_de_imagens_2024-2/5/laplaciano_3.jpeg")
     Image.fromarray(filtered_image4).save("/home/andre/dev/processamento_de_imagens_2024-2/5/laplaciano_4.jpeg")
-
-    # # Plota as imagens: original colorida, em escala de cinza e as filtradas
-    # plot_images_laplacian(original_image, image_array,
-    #                       [filtered_image1, filtered_image2, filtered_image3, filtered_image4],
-    #                       ["Laplaciano 1", "Laplaciano 2", "Laplaciano 3", "Laplaciano 4"])
