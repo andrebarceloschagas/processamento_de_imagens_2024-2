@@ -28,24 +28,26 @@ def subtract(matrix1, matrix2):
     if matrix1.shape != matrix2.shape:
         raise ValueError("As matrizes devem ter o mesmo tamanho.")
 
-    # Cria uma matriz vazia com o mesmo tamanho das matrizes de entrada:
-    result = np.zeros_like(matrix1)
+    # Cria uma matriz vazia com o mesmo tamanho das matrizes de entrada, usando 'int' temporariamente:
+    result = np.zeros_like(matrix1, dtype=int)
 
     # Percorre cada elemento das matrizes e realiza a operação de subtração:
     for i in range(matrix1.shape[0]):
         for j in range(matrix1.shape[1]):
-            subtracao = matrix1[i, j] - matrix2[i, j]
+            # Calcula a subtração como inteiro para evitar problemas com dados negativos
+            subtracao = int(matrix1[i, j]) - int(matrix2[i, j])
+            # Limita o valor mínimo a 0
             if subtracao < 0:
-                subtracao = 0  # Se a subtração for negativa, ajusta para o mínimo permitido (0)
+                subtracao = 0
             result[i, j] = subtracao  # Atribui o valor da subtração ao resultado
 
-    # Retorna a matriz resultado:
-    return result
+    # Converte o resultado de volta para uint8 antes de retornar
+    return result.astype(np.uint8)
 
 if __name__ == '__main__':
     # Caminhos para as imagens de entrada:
-    image_path1 = "/home/andre/processamento_de_imagens_2024-2/2/8.png"
-    image_path2 = "/home/andre/processamento_de_imagens_2024-2/2/12.png"
+    image_path1 = "/home/andre/dev/processamento_de_imagens_2024-2/2/8.png"
+    image_path2 = "/home/andre/dev/processamento_de_imagens_2024-2/2/12.png"
     
     # Carrega as imagens em escala de cinza:
     pixels1 = load_image(image_path1, as_gray=True)
@@ -55,7 +57,7 @@ if __name__ == '__main__':
     matrix_subtract = subtract(pixels1, pixels2)
 
     # Caminho para salvar a imagem resultante:
-    output_image_path = "/home/andre/processamento_de_imagens_2024-2/2/subtracao.png"
+    output_image_path = "/home/andre/dev/processamento_de_imagens_2024-2/2/subtracao.png"
 
     # Salva a nova imagem resultado:
     save_image(matrix_subtract, output_image_path)

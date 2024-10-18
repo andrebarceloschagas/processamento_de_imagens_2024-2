@@ -29,23 +29,26 @@ def add(matrix1, matrix2):
         raise ValueError("As matrizes devem ter o mesmo tamanho.")
 
     # Cria uma matriz vazia com o mesmo tamanho das matrizes de entrada:
-    result = np.zeros_like(matrix1)
+    result = np.zeros_like(matrix1, dtype=int)  # Usa 'int' temporariamente para evitar overflow
 
     # Percorre cada elemento das matrizes e realiza a operação de adição:
     for i in range(matrix1.shape[0]):
         for j in range(matrix1.shape[1]):
-            soma = matrix1[i, j] + matrix2[i, j]
+            # Calcula a soma como inteiro para evitar overflow
+            soma = int(matrix1[i, j]) + int(matrix2[i, j])
+            # Limita a soma ao máximo permitido (255)
             if soma > 255:
-                soma = 255  # Se a soma exceder 255, ajusta para o máximo permitido
+                soma = 255
             result[i, j] = soma  # Atribui o valor da soma ao resultado
 
-    # Retorna a matriz resultado:
-    return result
+    # Converte o resultado de volta para uint8 antes de retornar
+    return result.astype(np.uint8)
+
 
 if __name__ == '__main__':
     # Caminhos para as imagens de entrada:
-    image_path1 = "/home/andre/processamento_de_imagens_2024-2/2/8.png"
-    image_path2 = "/home/andre/processamento_de_imagens_2024-2/2/12.png"
+    image_path1 = "/home/andre/dev/processamento_de_imagens_2024-2/2/14.png"
+    image_path2 = "/home/andre/dev/processamento_de_imagens_2024-2/2/19.png"
     
     # Carrega as imagens em escala de cinza:
     pixels1 = load_image(image_path1, as_gray=True)
@@ -55,7 +58,7 @@ if __name__ == '__main__':
     matrix_add = add(pixels1, pixels2)
 
     # Caminho para salvar a imagem resultante:
-    output_image_path = "/home/andre/processamento_de_imagens_2024-2/2/adicao.png"
+    output_image_path = "/home/andre/dev/processamento_de_imagens_2024-2/2/adicao.png"
 
     # Salva a nova imagem resultado:
     save_image(matrix_add, output_image_path)

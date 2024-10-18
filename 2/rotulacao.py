@@ -18,42 +18,57 @@ def save_binary_matrix(binary_image, output_path):
     np.savetxt(output_path, binary_image, fmt='%s')
 
 def label_objects(binary_image):
-    # Rotula objetos em uma imagem binária
-    labels = np.zeros_like(binary_image)
-    label = 1
+    # Cria uma matriz para armazenar os rótulos, com o mesmo tamanho da imagem binária e tipo int
+    labels = np.zeros_like(binary_image, dtype=int)
+    label = 1  # Inicializa o primeiro rótulo como 1 (zero é considerado fundo)
+    equivalences = {}  # Dicionário para rastrear equivalências de rótulos
 
-    # Para cada pixel na imagem binária:
+    # Primeira passagem para rotular e armazenar equivalências
     for i in range(binary_image.shape[0]):
         for j in range(binary_image.shape[1]):
-            # Se o pixel é parte de um objeto:
+            # Verifica se o pixel faz parte de um objeto (valor 255 indica objeto)
             if binary_image[i, j] == 255:
-                # Encontra todos os pixels adjacentes ao pixel atual que já foram rotulados:
-                adjacent_labels = []
+                adjacent_labels = []  # Lista para armazenar rótulos dos vizinhos
+
+                # Verifica o vizinho acima
                 if i > 0 and labels[i-1, j] > 0:
                     adjacent_labels.append(labels[i-1, j])
+
+                # Verifica o vizinho à esquerda
                 if j > 0 and labels[i, j-1] > 0:
                     adjacent_labels.append(labels[i, j-1])
 
-                # Se nenhum pixel adjacente foi rotulado, crie um novo rótulo:
+                # Se não houver vizinhos rotulados, cria um novo rótulo
                 if not adjacent_labels:
-                    labels[i, j] = label
-                    label += 1
-                # Caso contrário, atribua o menor rótulo adjacente ao pixel atual:
+                    labels[i, j] = label  # Atribui um novo rótulo ao pixel atual
+                    label += 1  # Incrementa o rótulo para o próximo objeto
+
+                # Caso contrário, usa o menor rótulo adjacente e armazena equivalências
                 else:
-                    adjacent_labels.sort()
-                    labels[i, j] = adjacent_labels[0]
+                    min_label = min(adjacent_labels)  # Encontra o menor rótulo adjacente
+                    labels[i, j] = min_label  # Atribui o menor rótulo ao pixel atual
 
-                    # Se houver mais de um rótulo adjacente, adiciona as equivalências de rótulo:
-                    if len(adjacent_labels) > 1:
-                        for k in range(1, len(adjacent_labels)):
-                            equivalence = min(adjacent_labels[0], adjacent_labels[k])
-                            labels = np.where(labels == adjacent_labels[k], equivalence, labels)
+                    # Armazena equivalências entre o menor rótulo e outros rótulos adjacentes
+                    for adj_label in adjacent_labels:
+                        if adj_label != min_label:  # Apenas para rótulos diferentes do mínimo
+                            if adj_label in equivalences:
+                                equivalences[adj_label].add(min_label)
+                            else:
+                                equivalences[adj_label] = {min_label}
 
-    return labels
+    # Segunda passagem para resolver equivalências de rótulos
+    for i in range(binary_image.shape[0]):
+        for j in range(binary_image.shape[1]):
+            # Se o rótulo atual tem equivalências, substitui pelo menor rótulo equivalente
+            if labels[i, j] in equivalences:
+                min_equiv = min(equivalences[labels[i, j]])  # Menor rótulo equivalente
+                labels[i, j] = min_equiv  # Atualiza o rótulo para consolidar as equivalências
+
+    return labels  # Retorna a matriz de rótulos
 
 if __name__ == '__main__':
     # Carrega a imagem.
-    input_path = '/home/andre/processamento_de_imagens_2024-2/2/18_redux.png'
+    input_path = '/home/andre/dev/processamento_de_imagens_2024-2/2/olho.jpg'
 
     # Converte a imagem colorida em uma imagem binária.
     binary_image = to_binary_image(input_path)
@@ -62,9 +77,9 @@ if __name__ == '__main__':
     labeled_image = label_objects(binary_image)
 
     # Salva a imagem binária como um arquivo de imagem.
-    output_image_path = '/home/andre/processamento_de_imagens_2024-2/2/label_image.png'
+    output_image_path = '/home/andre/dev/processamento_de_imagens_2024-2/2/rotulacao.jpg'
     save_binary_image(binary_image, output_image_path)
 
     # Salva a matriz binária em um arquivo de texto.
-    output_matrix_path = '/home/andre/processamento_de_imagens_2024-2/2/binary_matrix.txt'
+    output_matrix_path = '/home/andre/dev/processamento_de_imagens_2024-2/2/rotulacao_matrix.txt'
     save_binary_matrix(binary_image, output_matrix_path)
