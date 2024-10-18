@@ -40,20 +40,23 @@ def laplacian_filter(image_array, kernel):
 if __name__ == '__main__':
     # Define as máscaras Laplacianas:
     mascara_1 = np.array([[0, 1, 0], # Laplaciano 1
-                          [1, -4, 1],
-                          [0, 1, 0]])
+                          [1, -4, 1], # Esta máscara detecta mudanças de intensidade de forma simples.
+                          [0, 1, 0]]) # Destaca as bordas mais grossas e não destaca detalhes da transição.
+                                      # ênfase nas transições verticais e horizontais
 
     mascara_2 = np.array([[1, 1, 1], # Laplaciano 2
-                          [1, -8, 1],
-                          [1, 1, 1]])
+                          [1, -8, 1], # Mais agressiva. Detecta bordas mais finas e destaca mais detalhes da transição
+                          [1, 1, 1]]) # É mais sensível a ruídos e detalhes da imagem.
+                                      # ênfase nas transições diagonais
+                                    
 
     mascara_3 = np.array([[0, -1, 0], # Laplaciano 3
-                          [-1, 4, -1],
-                          [0, -1, 0]])
+                          [-1, 4, -1], # Máscara que destaca bordas mais grossas e não destaca detalhes da transição.
+                          [0, -1, 0]]) # É mais suave que a máscara 1.
 
     mascara_4 = np.array([[-1, -1, -1], # Laplaciano 4
-                          [-1, 8, -1],
-                          [-1, -1, -1]])
+                          [-1, 8, -1],  # Máscara que destaca bordas mais finas e destaca mais detalhes da transição.
+                          [-1, -1, -1]]) # Com mais contraste nas bordas
 
     # Carrega a imagem original
     image_path = "/home/andre/dev/processamento_de_imagens_2024-2/5/centavos.jpeg"
