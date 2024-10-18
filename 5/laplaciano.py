@@ -15,16 +15,15 @@ def laplacian_filter(image_array, kernel):
 
     # Aplica a convolução com a máscara Laplaciana
     for y in range(margin, height - margin):
-        for x in range(margin, width - margin):
+        for x in range(margin, width - margin): 
             total = 0
             for j in range(-margin, margin + 1):
                 for i in range(-margin, margin + 1):
-                    total += image_array[y + j, x + i] * kernel[j + margin, i + margin]
+                    total += image_array[y + j, x + i] * kernel[j + margin, i + margin] 
             filtered_array[y, x] = total
 
     # Normaliza a saída entre 0 e 255
     filtered_array = (filtered_array - filtered_array.min()) / (filtered_array.max() - filtered_array.min()) * 255
-
 
     return filtered_array.astype(np.uint8)
 
