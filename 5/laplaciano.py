@@ -14,13 +14,23 @@ def laplacian_filter(image_array, kernel):
     filtered_array = np.zeros((height, width), dtype=np.float32)
 
     # Aplica a convolução com a máscara Laplaciana
-    for y in range(margin, height - margin):
-        for x in range(margin, width - margin): 
-            total = 0
-            for j in range(-margin, margin + 1):
-                for i in range(-margin, margin + 1):
-                    total += image_array[y + j, x + i] * kernel[j + margin, i + margin] 
-            filtered_array[y, x] = total
+    for y in range(margin, height - margin):  # Itera sobre as linhas da imagem (y representa a coordenada vertical)
+        for x in range(margin, width - margin):  # Itera sobre as colunas da imagem (x representa a coordenada horizontal)
+            total = 0  # Inicializa a soma (o valor convolucionado) para o pixel (x, y)
+            
+            # Itera sobre a área da vizinhança ao redor do pixel (x, y), considerando a máscara (kernel)
+            for j in range(-margin, margin + 1):  # Varia o deslocamento vertical (j) com base na margem do kernel
+                for i in range(-margin, margin + 1):  # Varia o deslocamento horizontal (i) com base na margem do kernel
+                    # Multiplica o valor do pixel da imagem pelo valor correspondente no kernel
+                    total += image_array[y + j, x + i] * kernel[j + margin, i + margin]  
+                    
+                    # Aqui, `y + j` e `x + i` acessam os pixels da vizinhança da imagem em torno de (y, x)
+                    # O kernel[j + margin, i + margin] acessa o valor correspondente no kernel, com base no deslocamento (i, j)
+                    # O valor resultante da multiplicação é somado ao `total`
+
+            # Atribui o valor da convolução (soma total) ao pixel (y, x) da imagem filtrada
+            filtered_array[y, x] = total  # O pixel (y, x) recebe o valor convolucionado no array de saída (filtered_array)
+
 
     # Normaliza a saída entre 0 e 255
     filtered_array = (filtered_array - filtered_array.min()) / (filtered_array.max() - filtered_array.min()) * 255
