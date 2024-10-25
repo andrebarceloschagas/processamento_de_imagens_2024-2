@@ -22,11 +22,7 @@ def laplacian_filter(image_array, kernel):
             for j in range(-margin, margin + 1):  # Varia o deslocamento vertical (j) com base na margem do kernel
                 for i in range(-margin, margin + 1):  # Varia o deslocamento horizontal (i) com base na margem do kernel
                     # Multiplica o valor do pixel da imagem pelo valor correspondente no kernel
-                    total += image_array[y + j, x + i] * kernel[j + margin, i + margin]  
-                    
-                    # Aqui, `y + j` e `x + i` acessam os pixels da vizinhança da imagem em torno de (y, x)
-                    # O kernel[j + margin, i + margin] acessa o valor correspondente no kernel, com base no deslocamento (i, j)
-                    # O valor resultante da multiplicação é somado ao `total`
+                    total += image_array[y + j, x + i] * kernel[j + margin, i + margin]  # Soma o valor convolucionado
 
             # Atribui o valor da convolução (soma total) ao pixel (y, x) da imagem filtrada
             filtered_array[y, x] = total  # O pixel (y, x) recebe o valor convolucionado no array de saída (filtered_array)
@@ -49,7 +45,6 @@ if __name__ == '__main__':
                           [1, 1, 1]]) # É mais sensível a ruídos e detalhes da imagem.
                                       # ênfase nas transições diagonais
                                     
-
     mascara_3 = np.array([[0, -1, 0], # Laplaciano 3
                           [-1, 4, -1], # Máscara que destaca bordas mais grossas e não destaca detalhes da transição.
                           [0, -1, 0]]) # É mais suave que a máscara 1.
