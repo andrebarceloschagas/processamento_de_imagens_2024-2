@@ -1,94 +1,141 @@
-# Abertura e Fechamento
-
 from PIL import Image
 import numpy as np
+import matplotlib.pyplot as plt
 
+def plot_images(original, eroded, dilated, opened, closed):
+    """
+    Função para plotar a imagem original, a imagem erodida, a imagem dilatada,
+    a imagem após abertura e a imagem após fechamento.
+    """
+    plt.figure(figsize=(15, 5))
 
-def abertura(image, element):
-    # Converte a imagem para um array:
-    image_array = np.array(image)
+    # Imagem original em escala de cinza
+    plt.subplot(1, 5, 1)
+    plt.imshow(original, cmap='gray')
+    plt.title('Imagem Original')
+    plt.axis('off')
 
-    # Realiza a operação de erosão:
-    eroded_image = erosao(image_array, element)
+    # Imagem erodida
+    plt.subplot(1, 5, 2)
+    plt.imshow(eroded, cmap='gray')
+    plt.title('Imagem Erodida')
+    plt.axis('off')
 
-    # Realiza a operação de dilatação na imagem erodida:
-    opened_image = dilatacao(eroded_image, element)
+    # Imagem dilatada
+    plt.subplot(1, 5, 3)
+    plt.imshow(dilated, cmap='gray')
+    plt.title('Imagem Dilatada')
+    plt.axis('off')
 
-    # Converte o array resultante novamente em uma imagem
-    opened_image = Image.fromarray(opened_image)
+    # Imagem abertura
+    plt.subplot(1, 5, 4)
+    plt.imshow(opened, cmap='gray')
+    plt.title('Abertura')
+    plt.axis('off')
 
-    return opened_image
+    # Imagem fechamento
+    plt.subplot(1, 5, 5)
+    plt.imshow(closed, cmap='gray')
+    plt.title('Fechamento')
+    plt.axis('off')
 
+    # Mostra as imagens
+    plt.show()
 
-def fechamento(image, element):
-    # Converte a imagem para um array:
-    image_array = np.array(image)
+def binarize_image(image_array, threshold=128):
+    """
+    Converte uma imagem em escala de cinza para binária (0 ou 1) com base em um valor de limiar.
+    """
+    return np.where(image_array >= threshold, 1, 0)
 
-    # Realiza a operação de dilatação:
-    dilated_image = dilatacao(image_array, element)
-
-    # Realiza a operação de erosão na imagem dilatada:
-    closed_image = erosao(dilated_image, element)
-
-    # Converte o array resultante novamente em uma imagem:
-    closed_image = Image.fromarray(closed_image)
-
-    return closed_image
-
-
-def erosao(image, kernel):
+def morphological_operation(image, element, operation):
+    """
+    Função genérica para realizar operações morfológicas (erosão ou dilatação) em uma imagem binária.
+    A operação pode ser 'min' (erosão) ou 'max' (dilatação).
+    """
     width, height = image.shape
+    elem_width, elem_height = element.shape
+    margin_x = elem_width // 2
+    margin_y = elem_height // 2
 
-    # Cria uma imagem de saída com o mesmo tamanho da imagem original:
-    eroded = np.zeros_like(image)
+    result = np.zeros_like(image)
 
-    # Percorre todos os pixels da imagem:
-    for x in range(width):
-        for y in range(height):
-            # Obtém o valor mínimo na vizinhança definida pelo elemento:
-            min_value = np.min(image[max(0, x - 1):min(width, x + 2), max(0, y - 1):min(height, y + 2)])
+    for x in range(margin_x, width - margin_x):
+        for y in range(margin_y, height - margin_y):
+            region = image[x - margin_x:x + margin_x + 1, y - margin_y:y + margin_y + 1]
+            
+            if operation == 'min':
+                result[x, y] = np.min(region[element == 1])
+            elif operation == 'max':
+                result[x, y] = np.max(region[element == 1])
 
-            # Define o valor mínimo na imagem de saída:
-            eroded[x, y] = min_value
+    return result
 
-    return eroded
-
+def erosao(image, element):
+    return morphological_operation(image, element, 'min')
 
 def dilatacao(image, element):
-    width, height = image.shape
+    return morphological_operation(image, element, 'max')
 
-    # Cria uma imagem de saída com o mesmo tamanho da imagem original:
-    dilated = np.zeros_like(image)
+def abertura(image, element):
+    """
+    Função para realizar a abertura em uma imagem.
+    Abertura é a erosão seguida de dilatação.
+    """
+    eroded = erosao(image, element) 
+    opened = dilatacao(eroded, element)
+    return opened
 
-    # Percorre todos os pixels da imagem:
-    for x in range(width):
-        for y in range(height):
-            # Obtém o valor máximo na vizinhança definida pelo elemento:
-            max_value = np.max(image[max(0, x - 1):min(width, x + 2), max(0, y - 1):min(height, y + 2)])
+def fechamento(image, element):
+    """
+    Função para realizar o fechamento em uma imagem.
+    Fechamento é a dilatação seguida de erosão.
+    """
+    dilated = dilatacao(image, element)
+    closed = erosao(dilated, element)
+    return closed
 
-            # Define o valor máximo na imagem de saída:
-            dilated[x, y] = max_value
-
-    return dilated
+def save_image(image_array, file_path):
+    """
+    Função para salvar uma imagem binária como arquivo PNG.
+    """
+    Image.fromarray(image_array.astype(np.uint8) * 255).save(file_path)
 
 if __name__ == '__main__':
-    # Carrega a imagem:
-    image = Image.open("/mnt/3ACCDBA5CCDB59A9/one/UFT/disciplinas/8_periodo/3_processamento_de_imagens/codigos/6/abertura_fechamento/image.png").convert("L")  # Converte para escala de cinza
+    # Carrega a imagem original:
+    image_path = '/home/andre/dev/processamento_de_imagens_2024-2/6/image.png'
 
-    # Define o elemento estruturante:
-    element = np.array([[0, 1, 0],
+    # Definir o elemento estruturante desejado:
+    element = np.array([[1, 1, 1],
                         [1, 1, 1],
-                        [0, 1, 0]], dtype=np.uint8)
+                        [1, 1, 1]], dtype=np.uint8)
 
-    # Aplica a operação de abertura na imagem:
-    opened_image = abertura(image, element)
+    # Abre a imagem e converte para escala de cinza:
+    image = Image.open(image_path).convert('L')
 
-    # Salva a imagem aberta:
-    opened_image.save("/mnt/3ACCDBA5CCDB59A9/one/UFT/disciplinas/8_periodo/3_processamento_de_imagens/codigos/6/abertura_fechamento/image_a.png")
+    # Converte a imagem para um array numpy:
+    img_array = np.array(image)
 
-    # Aplica a operação de fechamento na imagem:
-    closed_image = fechamento(image, element)
+    # Binariza a imagem
+    binary_image = binarize_image(img_array)
 
-    # Salva a imagem fechada:
-    closed_image.save("/mnt/3ACCDBA5CCDB59A9/one/UFT/disciplinas/8_periodo/3_processamento_de_imagens/codigos/6/abertura_fechamento/image_f.png")
+    # Aplica a operação de erosão:
+    eroded_image = erosao(binary_image, element)
 
+    # Aplica a dilatação na imagem:
+    dilated_image = dilatacao(binary_image, element)
+
+    # Aplica a operação de abertura:
+    opened_image = abertura(binary_image, element)
+
+    # Aplica a operação de fechamento:
+    closed_image = fechamento(binary_image, element)
+
+    # Salva as imagens resultantes:
+    save_image(eroded_image, '/home/andre/dev/processamento_de_imagens_2024-2/6/image_e.png')
+    save_image(dilated_image, '/home/andre/dev/processamento_de_imagens_2024-2/6/image_d.png')
+    save_image(opened_image, '/home/andre/dev/processamento_de_imagens_2024-2/6/image_opened.png')
+    save_image(closed_image, '/home/andre/dev/processamento_de_imagens_2024-2/6/image_closed.png')
+
+    # Plota as imagens original, erodida, dilatada, abertura e fechamento
+    plot_images(binary_image, eroded_image, dilated_image, opened_image, closed_image)
