@@ -65,7 +65,7 @@ def morphological_operation(image, element, operation):
             region = image[x - margin_x:x + margin_x + 1, y - margin_y:y + margin_y + 1]
             
             if operation == 'min':
-                result[x, y] = np.min(region[element == 1])
+                result[x, y] = np.min(region[element == 1]) 
             elif operation == 'max':
                 result[x, y] = np.max(region[element == 1])
 
@@ -84,7 +84,7 @@ def abertura(image, element):
     """
     eroded = erosao(image, element) 
     opened = dilatacao(eroded, element)
-    return opened
+    return opened # Remove pequenos objetos e ruídos, útil para limpar a imagem
 
 def fechamento(image, element):
     """
@@ -93,13 +93,13 @@ def fechamento(image, element):
     """
     dilated = dilatacao(image, element)
     closed = erosao(dilated, element)
-    return closed
+    return closed # Preenche buracos e lacunas, útil para conectar componentes disjuntos
 
 def save_image(image_array, file_path):
     """
     Função para salvar uma imagem binária como arquivo PNG.
     """
-    Image.fromarray(image_array.astype(np.uint8) * 255).save(file_path)
+    Image.fromarray(image_array.astype(np.uint8) * 255).save(file_path) # Multiplica por 255 para converter de 0-1 para 0-255
 
 if __name__ == '__main__':
     # Carrega a imagem original:

@@ -39,3 +39,17 @@ Academicos: [Antonio André](https://github.com/andrebarceloschagas/) e [Sophia 
 ## Processamento de Histograma
 
 [Equalização de Histograma](/4/equalizacao.py)
+
+## Filtragem
+
+[Filtro da Média](/5/media.py)
+
+[Filtros Laplacianos](/5/laplaciano.py)
+
+[Filtro Gradiente com Máscaras de Sobel](/5/gradiente.py)
+
+## Operações Morfológicas
+
+[Erosão e Dilatação](/6/erosao_dilatacao.py)
+
+[Abertura e Fechamento](/6/abertura_fechamento.py)
