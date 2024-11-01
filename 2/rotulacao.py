@@ -1,5 +1,7 @@
 import numpy as np
 from PIL import Image
+import matplotlib.pyplot as plt
+
 
 def to_binary_image(image_path, threshold=128):
     # Converte uma imagem colorida em uma imagem binária usando um limiar.
@@ -7,68 +9,100 @@ def to_binary_image(image_path, threshold=128):
     binary_image = np.array(image.point(lambda x: 0 if x < threshold else 255))
     return binary_image
 
+
 def save_binary_image(binary_image, output_path):
     # Salva uma imagem binária como um arquivo de imagem.
     image = Image.fromarray(binary_image.astype(np.uint8))
     image.save(output_path)
 
+
 def save_binary_matrix(binary_image, output_path):
-    # Salva uma imagem binária como uma matriz binária em um arquivo de texto
-    binary_image = np.where(binary_image == 0, '0', '1')
-    np.savetxt(output_path, binary_image, fmt='%s')
+    # Salva uma imagem binária como uma matriz binária em um arquivo de texto.
+    binary_image_matrix = np.where(binary_image == 0, '0', '1')
+    np.savetxt(output_path, binary_image_matrix, fmt='%s')
+
+
+def plot_images(original, labeled_image, binary_image):
+    # Função para plotar a imagem original (em cores), a imagem rotulada e a imagem binária.
+    plt.figure(figsize=(15, 5))
+
+    # Imagem original em cores
+    plt.subplot(1, 3, 1)
+    plt.imshow(original)
+    plt.title("Imagem Original")
+    plt.axis("off")
+
+    # Imagem rotulada
+    plt.subplot(1, 3, 2)
+    plt.imshow(labeled_image, cmap='tab20b')
+    plt.title("Imagem Rotulada (Objetos)")
+    plt.axis("off")
+
+    # Imagem binária
+    plt.subplot(1, 3, 3)
+    plt.imshow(binary_image, cmap='gray')
+    plt.title("Imagem Binária Rotulada")
+    plt.axis("off")
+
+    plt.show()
+
 
 def label_objects(binary_image):
-    # Cria uma matriz para armazenar os rótulos, com o mesmo tamanho da imagem binária e tipo int
+    # Cria uma matriz para armazenar os rótulos, com o mesmo tamanho da imagem binária e tipo int.
     labels = np.zeros_like(binary_image, dtype=int)
-    label = 1  # Inicializa o primeiro rótulo como 1 (zero é considerado fundo)
-    equivalences = {}  # Dicionário para rastrear equivalências de rótulos
+    label = 1  # Inicializa o primeiro rótulo como 1 (zero é considerado fundo).
+    equivalences = {}  # Dicionário para rastrear equivalências de rótulos.
 
-    # Primeira passagem para rotular e armazenar equivalências
+    # Primeira passagem para rotular e armazenar equivalências.
     for i in range(binary_image.shape[0]):
         for j in range(binary_image.shape[1]):
-            # Verifica se o pixel faz parte de um objeto (valor 255 indica objeto)
+            # Verifica se o pixel faz parte de um objeto (valor 255 indica objeto).
             if binary_image[i, j] == 255:
-                adjacent_labels = []  # Lista para armazenar rótulos dos vizinhos
+                adjacent_labels = []  # Lista para armazenar rótulos dos vizinhos.
 
-                # Verifica o vizinho acima
-                if i > 0 and labels[i-1, j] > 0:
-                    adjacent_labels.append(labels[i-1, j])
+                # Verifica o vizinho acima.
+                if i > 0 and labels[i - 1, j] > 0:
+                    adjacent_labels.append(labels[i - 1, j])
 
-                # Verifica o vizinho à esquerda
-                if j > 0 and labels[i, j-1] > 0:
-                    adjacent_labels.append(labels[i, j-1])
+                # Verifica o vizinho à esquerda.
+                if j > 0 and labels[i, j - 1] > 0:
+                    adjacent_labels.append(labels[i, j - 1])
 
-                # Se não houver vizinhos rotulados, cria um novo rótulo
+                # Se não houver vizinhos rotulados, cria um novo rótulo.
                 if not adjacent_labels:
-                    labels[i, j] = label  # Atribui um novo rótulo ao pixel atual
-                    label += 1  # Incrementa o rótulo para o próximo objeto
+                    labels[i, j] = label  # Atribui um novo rótulo ao pixel atual.
+                    label += 1  # Incrementa o rótulo para o próximo objeto.
 
-                # Caso contrário, usa o menor rótulo adjacente e armazena equivalências
+                # Caso contrário, usa o menor rótulo adjacente e armazena equivalências.
                 else:
-                    min_label = min(adjacent_labels)  # Encontra o menor rótulo adjacente
-                    labels[i, j] = min_label  # Atribui o menor rótulo ao pixel atual
+                    min_label = min(adjacent_labels)  # Encontra o menor rótulo adjacente.
+                    labels[i, j] = min_label  # Atribui o menor rótulo ao pixel atual.
 
-                    # Armazena equivalências entre o menor rótulo e outros rótulos adjacentes
+                    # Armazena equivalências entre o menor rótulo e outros rótulos adjacentes.
                     for adj_label in adjacent_labels:
-                        if adj_label != min_label:  # Apenas para rótulos diferentes do mínimo
+                        if adj_label != min_label:  # Apenas para rótulos diferentes do mínimo.
                             if adj_label in equivalences:
                                 equivalences[adj_label].add(min_label)
                             else:
                                 equivalences[adj_label] = {min_label}
 
-    # Segunda passagem para resolver equivalências de rótulos
+    # Segunda passagem para resolver equivalências de rótulos.
     for i in range(binary_image.shape[0]):
         for j in range(binary_image.shape[1]):
-            # Se o rótulo atual tem equivalências, substitui pelo menor rótulo equivalente
+            # Se o rótulo atual tem equivalências, substitui pelo menor rótulo equivalente.
             if labels[i, j] in equivalences:
-                min_equiv = min(equivalences[labels[i, j]])  # Menor rótulo equivalente
-                labels[i, j] = min_equiv  # Atualiza o rótulo para consolidar as equivalências
+                min_equiv = min(equivalences[labels[i, j]])  # Menor rótulo equivalente.
+                labels[i, j] = min_equiv  # Atualiza o rótulo para consolidar as equivalências.
 
-    return labels  # Retorna a matriz de rótulos
+    return labels  # Retorna a matriz de rótulos.
+
 
 if __name__ == '__main__':
-    # Carrega a imagem.
-    input_path = '/home/andre/dev/processamento_de_imagens_2024-2/2/olho.jpg'
+    # Caminho para a imagem de entrada
+    input_path = '/home/andre/dev/processamento_de_imagens_2024-2/2/18.png'
+
+    # Carrega a imagem original (em cores) para exibição.
+    original_image = Image.open(input_path)
 
     # Converte a imagem colorida em uma imagem binária.
     binary_image = to_binary_image(input_path)
@@ -77,9 +111,12 @@ if __name__ == '__main__':
     labeled_image = label_objects(binary_image)
 
     # Salva a imagem binária como um arquivo de imagem.
-    output_image_path = '/home/andre/dev/processamento_de_imagens_2024-2/2/rotulacao.jpg'
+    output_image_path = '/home/andre/dev/processamento_de_imagens_2024-2/2/rotulacao.png'
     save_binary_image(binary_image, output_image_path)
 
     # Salva a matriz binária em um arquivo de texto.
     output_matrix_path = '/home/andre/dev/processamento_de_imagens_2024-2/2/rotulacao_matrix.txt'
     save_binary_matrix(binary_image, output_matrix_path)
+
+    # Plota as imagens: original (em cores), rotulada e binária.
+    plot_images(original_image, labeled_image, binary_image)

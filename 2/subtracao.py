@@ -1,6 +1,6 @@
-# Bibliotecas externas:
 import numpy as np
 from PIL import Image
+import matplotlib.pyplot as plt
 
 def load_image(file_path, as_gray=False):
     """
@@ -18,6 +18,33 @@ def save_image(pixels, file_path):
     """
     image = Image.fromarray(pixels.astype('uint8'))  # Converte o array para imagem
     image.save(file_path)  # Salva a imagem no caminho especificado
+
+
+def plot_images(image1, image2, result_image):
+    """
+    Função para plotar as imagens originais e a imagem resultante da operação de subtração.
+    """
+    plt.figure(figsize=(15, 5))
+
+    # Primeira imagem
+    plt.subplot(1, 3, 1)
+    plt.imshow(image1, cmap='gray')
+    plt.title("Imagem 1")
+    plt.axis("off")
+
+    # Segunda imagem
+    plt.subplot(1, 3, 2)
+    plt.imshow(image2, cmap='gray')
+    plt.title("Imagem 2")
+    plt.axis("off")
+
+    # Imagem resultante (adicionada)
+    plt.subplot(1, 3, 3)
+    plt.imshow(result_image, cmap='gray')
+    plt.title("Imagem Resultante (Subtraçao)")
+    plt.axis("off")
+
+    plt.show()
 
 def subtract(matrix1, matrix2):
     """
@@ -61,3 +88,6 @@ if __name__ == '__main__':
 
     # Salva a nova imagem resultado:
     save_image(matrix_subtract, output_image_path)
+
+    # Plota as imagens originais e a imagem resultante:
+    plot_images(pixels1, pixels2, matrix_subtract)
