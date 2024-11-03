@@ -53,3 +53,7 @@ Academicos: [Antonio André](https://github.com/andrebarceloschagas/) e [Sophia 
 [Erosão e Dilatação](/6/erosao_dilatacao.py)
 
 [Abertura e Fechamento](/6/abertura_fechamento.py)
+
+## Segmentação
+
+[Segmenação por Limiarização](/6/limiarizacao.py)
