@@ -1,77 +1,237 @@
-from PIL import Image
+import os
 import numpy as np
+from PIL import Image, UnidentifiedImageError
 import matplotlib.pyplot as plt
+from typing import Tuple, Union, Dict
 
-def laplacian_filter(image_array, kernel):
+# --- Funções Auxiliares Padronizadas (Reutilizadas de gradiente.py) ---
+
+def load_pil_image(file_path: str) -> Union[Image.Image, None]:
     """
-    Função para aplicar o filtro laplaciano em uma imagem.
+    Carrega uma imagem a partir do caminho do arquivo usando Pillow.
     """
-    height, width = image_array.shape
+    try:
+        img = Image.open(file_path)
+        return img
+    except FileNotFoundError:
+        print(f"Erro: Arquivo de imagem não encontrado em '{file_path}'.")
+    except UnidentifiedImageError:
+        print(f"Erro: Não foi possível identificar o arquivo de imagem: '{file_path}'.")
+    except Exception as e:
+        print(f"Um erro inesperado ocorreu ao carregar a imagem '{file_path}': {e}")
+    return None
+
+def pil_to_numpy_array(image: Image.Image, dtype: type = np.uint8) -> np.ndarray:
+    """
+    Converte uma imagem PIL para um array NumPy.
+    """
+    return np.array(image, dtype=dtype)
+
+def numpy_to_pil_image(array: np.ndarray) -> Image.Image:
+    """
+    Converte um array NumPy para uma imagem PIL.
+    """
+    if array.ndim == 2:
+        return Image.fromarray(array.astype(np.uint8), 'L')
+    elif array.ndim == 3 and array.shape[2] == 3:
+        return Image.fromarray(array.astype(np.uint8), 'RGB')
+    elif array.ndim == 3 and array.shape[2] == 4:
+        return Image.fromarray(array.astype(np.uint8), 'RGBA')
+    else:
+        raise ValueError(f"Formato de array NumPy não suportado: {array.shape}")
+
+def save_numpy_as_image(array: np.ndarray, file_path: str) -> None:
+    """
+    Salva um array NumPy como um arquivo de imagem.
+    """
+    try:
+        image = numpy_to_pil_image(array)
+        image.save(file_path)
+        print(f"Imagem salva com sucesso em '{file_path}'.")
+    except Exception as e:
+        print(f"Erro ao salvar imagem em '{file_path}': {e}")
+
+def convert_pil_to_grayscale_numpy(image: Image.Image) -> np.ndarray:
+    """
+    Converte uma imagem PIL para um array NumPy em escala de cinza.
+    """
+    if image.mode == 'L':
+        return pil_to_numpy_array(image)
+    return pil_to_numpy_array(image.convert('L'))
+
+def apply_convolution(image_array: np.ndarray, kernel: np.ndarray) -> np.ndarray:
+    """
+    Aplica uma convolução 2D a uma imagem.
+    """
     kernel_height, kernel_width = kernel.shape
-    margin = kernel_width // 2
+    if kernel_height % 2 == 0 or kernel_width % 2 == 0:
+        raise ValueError("O kernel deve ter dimensões ímpares.")
+    pad_h, pad_w = kernel_height // 2, kernel_width // 2
+    padded_image = np.pad(image_array, ((pad_h, pad_h), (pad_w, pad_w)), mode='edge')
+    output_image = np.zeros_like(image_array, dtype=np.float32)
+    image_height, image_width = image_array.shape
+    for r in range(image_height):
+        for c in range(image_width):
+            region = padded_image[r : r + kernel_height, c : c + kernel_width]
+            output_image[r, c] = np.sum(region * kernel)
+    return output_image
 
-    # Cria um array vazio para armazenar a imagem filtrada
-    filtered_array = np.zeros((height, width), dtype=np.float32)
+def normalize_to_uint8(array: np.ndarray) -> np.ndarray:
+    """
+    Normaliza um array NumPy para o intervalo 0-255 e converte para uint8.
+    """
+    min_val, max_val = np.min(array), np.max(array)
+    if max_val == min_val:
+        return np.full_like(array, 128 if -1e-6 < min_val < 1e-6 else np.clip(min_val,0,255) , dtype=np.uint8)
+    normalized = 255 * (array - min_val) / (max_val - min_val)
+    return normalized.astype(np.uint8)
 
-    # Aplica a convolução com a máscara Laplaciana
-    for y in range(margin, height - margin):  # Itera sobre as linhas da imagem (y representa a coordenada vertical)
-        for x in range(margin, width - margin):  # Itera sobre as colunas da imagem (x representa a coordenada horizontal)
-            total = 0  # Inicializa a soma (o valor convolucionado) para o pixel (x, y)
+# --- Funções Principais do Filtro Laplaciano ---
+
+def laplacian_filter_manual(image_gray_numpy: np.ndarray, kernel: np.ndarray) -> np.ndarray:
+    """
+    Aplica um filtro Laplaciano a uma imagem em escala de cinza usando um kernel específico.
+
+    Args:
+        image_gray_numpy: Array NumPy 2D representando a imagem em escala de cinza.
+        kernel: Array NumPy 2D representando o kernel Laplaciano.
+
+    Returns:
+        Array NumPy 2D da imagem após a aplicação do filtro Laplaciano.
+        O resultado é float32 e pode precisar ser normalizado para visualização.
+    """
+    if image_gray_numpy.ndim != 2:
+        raise ValueError("A imagem de entrada para o filtro Laplaciano deve ser 2D (escala de cinza).")
+    if kernel.ndim != 2 or kernel.shape[0] % 2 == 0 or kernel.shape[1] % 2 == 0:
+        raise ValueError("O kernel Laplaciano deve ser 2D e ter dimensões ímpares.")
+        
+    return apply_convolution(image_gray_numpy.astype(np.float32), kernel)
+
+# --- Função de Plotagem ---
+
+def plot_laplacian_results(
+    original_gray_numpy: np.ndarray,
+    filtered_images_dict: Dict[str, np.ndarray],
+    main_title: str = "Resultados do Filtro Laplaciano",
+    output_path: Union[str, None] = None
+) -> None:
+    """
+    Plota a imagem original em cinza e os resultados de diferentes filtros Laplacianos.
+
+    Args:
+        original_gray_numpy: Imagem original em escala de cinza (NumPy array).
+        filtered_images_dict: Dicionário onde as chaves são nomes dos filtros (ex: "Máscara 1")
+                              e os valores são os arrays NumPy das imagens filtradas.
+        main_title: Título principal para o plot.
+        output_path: Caminho opcional para salvar o plot.
+    """
+    num_filters = len(filtered_images_dict)
+    num_plots = num_filters + 1 # +1 para a imagem original
+    
+    # Ajusta o layout de subplots dinamicamente
+    # Tenta fazer uma grade o mais quadrada possível
+    cols = int(np.ceil(np.sqrt(num_plots)))
+    rows = int(np.ceil(num_plots / cols))
+    
+    fig, axes = plt.subplots(rows, cols, figsize=(cols * 5, rows * 4))
+    fig.suptitle(main_title, fontsize=16)
+    axes = axes.flatten() # Facilita a iteração
+
+    # Plot da imagem original
+    axes[0].imshow(original_gray_numpy, cmap='gray', vmin=0, vmax=255)
+    axes[0].set_title(f"Original em Cinza\nShape: {original_gray_numpy.shape}")
+    axes[0].axis('off')
+
+    # Plot das imagens filtradas
+    idx = 1
+    for filter_name, filtered_array in filtered_images_dict.items():
+        if idx < len(axes):
+            vis_filtered = normalize_to_uint8(filtered_array)
+            axes[idx].imshow(vis_filtered, cmap='gray', vmin=0, vmax=255)
+            axes[idx].set_title(f"{filter_name}\nShape: {vis_filtered.shape}")
+            axes[idx].axis('off')
+            idx += 1
             
-            # Itera sobre a área da vizinhança ao redor do pixel (x, y), considerando a máscara (kernel)
-            for j in range(-margin, margin + 1):  # Varia o deslocamento vertical (j) com base na margem do kernel
-                for i in range(-margin, margin + 1):  # Varia o deslocamento horizontal (i) com base na margem do kernel
-                    # Multiplica o valor do pixel da imagem pelo valor correspondente no kernel
-                    total += image_array[y + j, x + i] * kernel[j + margin, i + margin]  # Soma o valor convolucionado
+    # Desliga eixos não utilizados
+    for i in range(idx, len(axes)):
+        axes[i].axis('off')
 
-            # Atribui o valor da convolução (soma total) ao pixel (y, x) da imagem filtrada
-            filtered_array[y, x] = total  # O pixel (y, x) recebe o valor convolucionado no array de saída (filtered_array)
+    plt.tight_layout(rect=[0, 0, 1, 0.96])
+    
+    if output_path:
+        try:
+            plt.savefig(output_path)
+            print(f"Plot salvo com sucesso em '{output_path}'.")
+        except Exception as e:
+            print(f"Erro ao salvar o plot em '{output_path}': {e}")
+    plt.show()
 
-
-    # Normaliza a saída entre 0 e 255
-    filtered_array = (filtered_array - filtered_array.min()) / (filtered_array.max() - filtered_array.min()) * 255
-
-    return filtered_array.astype(np.uint8)
+# --- Bloco de Execução Principal ---
 
 if __name__ == '__main__':
-    # Define as máscaras Laplacianas:
-    mascara_1 = np.array([[0, 1, 0], # Laplaciano 1
-                          [1, -4, 1], # Esta máscara detecta mudanças de intensidade de forma simples.
-                          [0, 1, 0]]) # Destaca as bordas mais grossas e não destaca detalhes da transição.
-                                      # ênfase nas transições verticais e horizontais
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    input_image_filename = "centavos.jpeg"  # Exemplo, pode ser alterado
+    input_image_path = os.path.join(script_dir, input_image_filename)
 
-    mascara_2 = np.array([[1, 1, 1], # Laplaciano 2
-                          [1, -8, 1], # Mais agressiva. Detecta bordas mais finas e destaca mais detalhes da transição
-                          [1, 1, 1]]) # É mais sensível a ruídos e detalhes da imagem.
-                                      # ênfase nas transições diagonais
-                                    
-    mascara_3 = np.array([[0, -1, 0], # Laplaciano 3
-                          [-1, 4, -1], # Máscara que destaca bordas mais grossas e não destaca detalhes da transição.
-                          [0, -1, 0]]) # É mais suave que a máscara 1.
+    output_dir_name = "resultados_laplaciano"
+    output_dir_path = os.path.join(script_dir, output_dir_name)
 
-    mascara_4 = np.array([[-1, -1, -1], # Laplaciano 4
-                          [-1, 8, -1],  # Máscara que destaca bordas mais finas e destaca mais detalhes da transição.
-                          [-1, -1, -1]]) # Com mais contraste nas bordas
+    try:
+        os.makedirs(output_dir_path, exist_ok=True)
+        print(f"Diretório de saída '{output_dir_path}' assegurado.")
+    except OSError as e:
+        print(f"Erro ao criar diretório de saída '{output_dir_path}': {e}")
+        # exit(1)
 
-    # Carrega a imagem original
-    image_path = "/home/andre/dev/processamento_de_imagens_2024-2/5/centavos.jpeg"
-    original_image = Image.open(image_path)
+    print(f"Carregando imagem: '{input_image_path}'...")
+    pil_image_original = load_pil_image(input_image_path)
 
-    # Converte a imagem para escala de cinza
-    image_gray = original_image.convert('L')
-    image_array = np.array(image_gray)
+    if pil_image_original:
+        print("Convertendo imagem para array NumPy em escala de cinza...")
+        numpy_image_gray = convert_pil_to_grayscale_numpy(pil_image_original)
+        
+        original_gray_filename = f"{os.path.splitext(input_image_filename)[0]}_gray_numpy.jpeg"
+        original_gray_output_path = os.path.join(output_dir_path, original_gray_filename)
+        save_numpy_as_image(numpy_image_gray, original_gray_output_path)
 
-    # Aplica as máscaras Laplacianas
-    filtered_image1 = laplacian_filter(image_array, mascara_1)
-    filtered_image2 = laplacian_filter(image_array, mascara_2)
-    filtered_image3 = laplacian_filter(image_array, mascara_3)
-    filtered_image4 = laplacian_filter(image_array, mascara_4)
+        # Definição dos kernels Laplacianos
+        kernels_laplacianos = {
+            "Máscara Laplaciana 1 (Centro -4)": np.array([[ 0,  1,  0],
+                                                          [ 1, -4,  1],
+                                                          [ 0,  1,  0]], dtype=np.float32),
+            "Máscara Laplaciana 2 (Centro -8)": np.array([[ 1,  1,  1],
+                                                          [ 1, -8,  1],
+                                                          [ 1,  1,  1]], dtype=np.float32),
+            "Máscara Laplaciana 3 (Centro 4)":  np.array([[ 0, -1,  0],
+                                                          [-1,  4, -1],
+                                                          [ 0, -1,  0]], dtype=np.float32),
+            "Máscara Laplaciana 4 (Centro 8)":  np.array([[-1, -1, -1],
+                                                          [-1,  8, -1],
+                                                          [-1, -1, -1]], dtype=np.float32)
+        }
 
-    # Salva a imagem em tons de cinza
-    Image.fromarray(image_array).save("/home/andre/dev/processamento_de_imagens_2024-2/5/laplaciano_centavos_gray.jpeg")
+        filtered_laplacian_images = {}
+        print("Aplicando filtros Laplacianos...")
+        for name, kernel in kernels_laplacianos.items():
+            print(f"  Aplicando {name}...")
+            filtered_image = laplacian_filter_manual(numpy_image_gray, kernel)
+            filtered_laplacian_images[name] = filtered_image
+            
+            # Salva cada imagem filtrada (normalizada)
+            filter_output_filename = f"{os.path.splitext(input_image_filename)[0]}_laplaciano_{name.lower().replace(' ', '_').replace('(', '').replace(')', '')}.jpeg"
+            save_numpy_as_image(normalize_to_uint8(filtered_image), os.path.join(output_dir_path, filter_output_filename))
 
-    # Salva as imagens filtradas
-    Image.fromarray(filtered_image1).save("/home/andre/dev/processamento_de_imagens_2024-2/5/laplaciano_1.jpeg")
-    Image.fromarray(filtered_image2).save("/home/andre/dev/processamento_de_imagens_2024-2/5/laplaciano_2.jpeg")
-    Image.fromarray(filtered_image3).save("/home/andre/dev/processamento_de_imagens_2024-2/5/laplaciano_3.jpeg")
-    Image.fromarray(filtered_image4).save("/home/andre/dev/processamento_de_imagens_2024-2/5/laplaciano_4.jpeg")
+        # Plotar e salvar resultados
+        plot_filename = f"plot_{os.path.splitext(input_image_filename)[0]}_laplaciano_results.png"
+        plot_output_path = os.path.join(output_dir_path, plot_filename)
+
+        plot_laplacian_results(
+            original_gray_numpy=numpy_image_gray,
+            filtered_images_dict=filtered_laplacian_images,
+            main_title=f"Filtros Laplacianos - {input_image_filename}",
+            output_path=plot_output_path
+        )
+        print("Processamento com filtros Laplacianos concluído.")
+    else:
+        print(f"Não foi possível carregar a imagem '{input_image_path}'. O script será interrompido.")
